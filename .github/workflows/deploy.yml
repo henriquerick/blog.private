@@ -49,8 +49,7 @@ jobs:
       # 6. Synchronize generated files
       - name: Copy generated website
         run: |
-          rsync -av --delete --exclude='.git/' --exclude='CNAME' out/ deploy/
-          echo "blog.henriquerick.com" > deploy/CNAME
+          rsync -av --delete --exclude='.git/' out/ deploy/
           touch deploy/.nojekyll
 
       # 7. Commit and push
