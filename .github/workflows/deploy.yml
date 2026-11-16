@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout private Astro source
+      # 1. Checkout private Next.js source
       - name: Checkout source
         uses: actions/checkout@v4
 
@@ -30,9 +30,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Build Astro
+      # 4. Build static Next.js export
       - name: Build website
         run: npm run build
+
+      - name: Verify static export
+        run: test -f out/index.html
 
       # 5. Checkout public repository
       - name: Checkout public repository
@@ -46,7 +49,8 @@ jobs:
       # 6. Synchronize generated files
       - name: Copy generated website
         run: |
-          rsync -av --delete --exclude='.git/' out/ deploy/
+          rsync -av --delete --exclude='.git/' --exclude='CNAME' out/ deploy/
+          echo "blog.henriquerick.com" > deploy/CNAME
           touch deploy/.nojekyll
 
       # 7. Commit and push
@@ -61,7 +65,7 @@ jobs:
           git add -A
 
           if ! git diff --cached --quiet; then
-            git commit -m "Deploy Astro website"
+            git commit -m "Deploy Next.js website"
             git push origin HEAD:main
           else
             echo "No changes to deploy."
