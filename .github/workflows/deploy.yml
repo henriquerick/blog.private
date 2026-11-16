@@ -1,0 +1,68 @@
+
+name: Build and Deploy Blog
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout private Astro source
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build Astro
+      - name: Build website
+        run: npm run build
+
+      # 5. Checkout public repository
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+        with:
+          repository: henriquerick/blog.public
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          ref: main
+          path: deploy
+
+      # 6. Synchronize generated files
+      - name: Copy generated website
+        run: |
+          rsync -av --delete --exclude='.git/' dist/ deploy/
+          touch deploy/.nojekyll
+
+      # 7. Commit and push
+      - name: Publish website
+        run: |
+          cd deploy
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy Astro website"
+            git push origin HEAD:main
+          else
+            echo "No changes to deploy."
+          fi
