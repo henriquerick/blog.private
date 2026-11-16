@@ -46,7 +46,7 @@ jobs:
       # 6. Synchronize generated files
       - name: Copy generated website
         run: |
-          rsync -av --delete --exclude='.git/' dist/ deploy/
+          rsync -av --delete --exclude='.git/' out/ deploy/
           touch deploy/.nojekyll
 
       # 7. Commit and push
